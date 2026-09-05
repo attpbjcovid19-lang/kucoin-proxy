@@ -1,17 +1,18 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const targetUrl = 'https://api.kucoin.com' + req.url;
-  
+
+  // Extract only the essential KuCoin headers from Google Apps Script
+  const forwardHeaders = {};
+  for (const key in req.headers) {
+    if (key.startsWith('kc-') || key === 'content-type') {
+      forwardHeaders[key] = req.headers[key];
+    }
+  }
+
   try {
     const response = await fetch(targetUrl, {
       method: req.method,
-      headers: {
-        'kc-api-sign': req.headers['kc-api-sign'] || '',
-        'kc-api-key': req.headers['kc-api-key'] || '',
-        'kc-api-timestamp': req.headers['kc-api-timestamp'] || '',
-        'kc-api-passphrase': req.headers['kc-api-passphrase'] || '',
-        'kc-api-key-version': req.headers['kc-api-key-version'] || '2',
-        'content-type': 'application/json'
-      }
+      headers: forwardHeaders
     });
 
     const data = await response.json();
@@ -19,4 +20,4 @@ export default async function handler(req, res) {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+};
